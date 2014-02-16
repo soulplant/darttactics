@@ -13,8 +13,11 @@ class Controller {
   Set<int> _recent = new Set();
 
   void onKeyDown(int keyCode) {
-    _keys.add(keyCode);
-    _recent.add(keyCode);
+    // We can get multiple onKeyDown() calls while a key is held down because
+    // of auto-repeat.
+    if (_keys.add(keyCode)) {
+      _recent.add(keyCode);
+    }
   }
 
   void onKeyUp(int keyCode) {
