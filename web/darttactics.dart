@@ -101,7 +101,7 @@ void main() {
     double tickDuration = 1000.0 / FPS;
     while (timeElapsed - (tickCount * tickDuration) > tickDuration) {
       focusStack.inputUpdated(controller);
-      controller.clearRecent();
+      controller.tick();
       root.baseTick();
       tickCount++;
     }

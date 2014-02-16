@@ -11,6 +11,7 @@ class Controller {
 
   Set<int> _keys = new Set();
   Set<int> _recent = new Set();
+  Set<int> _removals = new Set();
 
   void onKeyDown(int keyCode) {
     // We can get multiple onKeyDown() calls while a key is held down because
@@ -18,14 +19,17 @@ class Controller {
     if (_keys.add(keyCode)) {
       _recent.add(keyCode);
     }
+    _removals.remove(keyCode);
   }
 
   void onKeyUp(int keyCode) {
-    _keys.remove(keyCode);
+    _removals.add(keyCode);
   }
 
-  void clearRecent() {
+  void tick() {
     _recent.clear();
+    _keys.removeAll(_removals);
+    _removals.clear();
   }
 
   bool isKeyDown(int keyCode) {
