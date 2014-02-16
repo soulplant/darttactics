@@ -30,7 +30,7 @@ class GamePiece extends Entity implements KeyFocusHandler {
     if (delta != null) {
       _pos += delta;
       _view.setFacing(delta);
-      blockInputWhile(_view.slideTo(scalePoint(_pos, 16), 200));
+      blockInputWhile(_view.slideTo(scalePoint(_pos, 16), 270));
       return false;
     }
     if (controller.actionRecent) {
