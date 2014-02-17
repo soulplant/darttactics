@@ -68,27 +68,41 @@ void main() {
   Controller controller = new Controller();
   var loader = new ImageLoader();
   var fighterImages = loader.loadImageMapFromDir('fighter');
+  var enemyFighterImages = loader.loadImageMapFromDir('efighter');
   var tileImages = loader.loadImages(['grass', 'dirt']);
   var directions = ['left', 'right', 'up', 'down'];
   var tileMap = new TileMap((320 / 16).floor(), (240 / 16).floor(), tileImages);
   var focusStack = new KeyFocusStack();
 
-  var root = new Entity(focusStack);
-  var green = new GamePiece(fighterImages, new Point(0, 0));
-  var red = new GamePiece(fighterImages, new Point(5, 5));
-  root.add(green);
-  root.add(red);
+  GamePiece fighter(x, y) => new GamePiece(fighterImages, new Point(x, y));
+  GamePiece efighter(x, y) => new GamePiece(enemyFighterImages, new Point(x, y));
 
-  loop(GamePiece p1, GamePiece p2) {
-    Cursor cursor = new Cursor(p2.viewPos);
+  var goodGuys = [fighter(0, 0), fighter(1, 0), fighter(0, 1)];
+  var badGuys = [efighter(5, 5), efighter(8, 6), efighter(7, 9)];
+
+  var root = new Entity(focusStack);
+  for (var g in goodGuys) {
+    root.add(g);
+  }
+  for (var b in badGuys) {
+    root.add(b);
+  }
+
+  loop(List<GamePiece> currentTeam, List<GamePiece> nextTeam) {
+    var currentPlayer = currentTeam.first;
+    var lastPlayer = nextTeam.last;
+    Cursor cursor = new Cursor(lastPlayer.viewPos);
     root.add(cursor);
-    cursor.moveToTarget(p1.viewPos).then((_) {
+    cursor.moveToTarget(currentPlayer.viewPos).then((_) {
       cursor.die();
-      p1.makeMove().then((_) => loop(p2, p1));
+      currentPlayer.makeMove().then((_) {
+        currentTeam.add(currentTeam.removeAt(0));
+        loop(nextTeam, currentTeam);
+      });
     });
   }
 
-  loop(green, red);
+  loop(goodGuys, badGuys);
 
   double startTime = -1.0;
   int tickCount = 0;
