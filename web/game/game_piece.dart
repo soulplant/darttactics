@@ -4,12 +4,12 @@ part of tactics;
  * Represents a 'piece' in the game, ie: something that can move and attack in
  * the tactical game.
  */
-class GamePiece extends Entity implements KeyFocusHandler {
+class GamePiece extends Entity {
   Sprite _view;
   Point<int> _pos;
 
   GamePiece(Map<String, ImageElement> images, this._pos) {
-    _view = new Sprite(images, scalePoint(_pos, 16));
+    _view = new Sprite(images, scalePoint(_pos, TILE_WIDTH_PX));
   }
 
   void onInit() {
@@ -25,25 +25,21 @@ class GamePiece extends Entity implements KeyFocusHandler {
     return _view._pos;
   }
 
-  bool inputUpdated(Controller controller) {
+  dynamic makeMoveInputLoop(Controller controller) {
     Point<int> delta = controller.direction;
     if (delta != null) {
       _pos += delta;
       _view.setFacing(delta);
-      blockInputWhile(_view.slideTo(scalePoint(_pos, 16), 270));
-      return false;
+      return blockInputWhile(_view.slideTo(scalePoint(_pos, TILE_WIDTH_PX), 270));
     }
     if (controller.actionRecent) {
       _view.setFacing(new Point(0, 1));
       return true;
     }
-    return false;
-  }
-
-  void onFirstInput() {
+    return null;
   }
 
   Future makeMove() {
-    return getFocusStack().push(this);
+    return getFocusStack().enter(makeMoveInputLoop);
   }
 }

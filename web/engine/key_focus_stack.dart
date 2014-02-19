@@ -1,61 +1,54 @@
 part of tactics;
 
-class InputHandlerWrapper {
-  KeyFocusHandler handler;
-  bool gotFirstInput = false;
-  Completer completer = new Completer();
-  InputHandlerWrapper(this.handler) {}
+// TODO: This should be called FrameWrapper, and the Function should be a Frame class.
+class Frame {
+  Completer completer;
+  Function function;
+  Frame(this.completer, this.function);
 }
 
-class KeyFocusStack {
-  List<InputHandlerWrapper> _stack = [];
+// TODO: Rename to FrameStack.
+class KeyFocusStack<T> {
+  List<Frame> stack = [];
 
-  Future push(KeyFocusHandler handler) {
-    var wrapper = new InputHandlerWrapper(handler);
-    _stack.add(wrapper);
-    return wrapper.completer.future;
+  KeyFocusStack() {
+    // Top level frame ignores all input and loops forever.
+    enter((input) => null);
   }
 
-  void pop() {
-    _stack.removeLast().completer.complete();
+  Future enter(Function next) {
+    var w = new Frame(new Completer.sync(), next);
+    stack.add(w);
+    return w.completer.future;
   }
 
-  KeyFocusHandler get top {
-    if (_stack.isEmpty) {
-      return null;
+  void _exit(result) {
+    Frame w = stack.removeLast();
+    w.completer.complete(result);
+  }
+
+  void inputUpdated(T input) {
+    if (stack.isEmpty) {
+      throw new Exception("stack is empty");
     }
-    return _stack.last.handler;
+
+    var result = stack.last.function(input);
+    _handleResult(result);
+  }
+
+  void _handleResult(result) {
+    if (result is Future) {
+      Future f = result;
+      f.then(_handleResult);
+    } else if (result is Function) {
+      stack.last.function = result;
+    } else if (result != null) {
+      _exit(result);
+    }
   }
 
   Future blockInputWhile(Future future) {
-    push(new InputBlocker());
-    return future.then((_) => pop());
-  }
-
-  Function block(Function callback) {
-    push(new InputBlocker());
-    return () {
-      pop();
-      if (callback != null)
-        callback();
-    };
-  }
-
-  void inputUpdated(Controller controller) {
-    if (_stack.isEmpty) {
-      return;
-    }
-    var entry = _stack.last;
-    if (!entry.gotFirstInput) {
-      entry.gotFirstInput = true;
-      entry.handler.onFirstInput();
-      // The handler's onFirstInput() might have pushed, so we recur.
-      inputUpdated(controller);
-      return;
-    }
-
-    if (entry.handler.inputUpdated(controller)) {
-      pop();
-    }
+    future.then((_) => _exit(null));
+    return enter((input) => null);
   }
 }

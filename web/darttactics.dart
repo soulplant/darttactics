@@ -1,21 +1,11 @@
-library tactics;
+library darttactics;
 
 import 'dart:async';
 import 'dart:html';
-import 'dart:math' as math;
 import 'package:stats/stats.dart';
+import 'tactics.dart';
 
 import 'util.dart';
-
-part 'engine/key_focus_stack.dart';
-part 'engine/key_focus_handler.dart';
-part 'engine/controller.dart';
-part 'engine/entity.dart';
-part 'game/sprite.dart';
-part 'game/position_slider.dart';
-part 'game/game_piece.dart';
-part 'game/tile_map.dart';
-part 'game/cursor.dart';
 
 class ImageLoader {
   int _outstandingLoads = 0;
@@ -72,7 +62,7 @@ void main() {
   var tileImages = loader.loadImages(['grass', 'dirt']);
   var directions = ['left', 'right', 'up', 'down'];
   var tileMap = new TileMap((320 / 16).floor(), (240 / 16).floor(), tileImages);
-  var focusStack = new KeyFocusStack();
+  KeyFocusStack<Controller> focusStack = new KeyFocusStack<Controller>();
 
   GamePiece fighter(x, y) => new GamePiece(fighterImages, new Point(x, y));
   GamePiece efighter(x, y) => new GamePiece(enemyFighterImages, new Point(x, y));

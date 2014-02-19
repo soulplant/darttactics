@@ -33,8 +33,6 @@ class Entity {
     _inited = true;
   }
 
-  Future blockInputWhile(Future f) => getFocusStack().blockInputWhile(f);
-
   void onInit() {}
   void onDie() {}
 
@@ -82,6 +80,8 @@ class Entity {
     }
     return _focusStack;
   }
+
+  Future blockInputWhile(Future f) => getFocusStack().blockInputWhile(f);
 
   bool get alive => _alive;
   Future get onDead => _completer.future;

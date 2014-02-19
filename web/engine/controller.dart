@@ -46,6 +46,7 @@ class Controller {
   bool get down => isKeyDown(VKEY_DOWN);
   bool get action => isKeyDown(VKEY_ENTER);
   bool get actionRecent => action && isKeyRecent(VKEY_ENTER);
+  bool get cancel => isKeyDown(VKEY_ESCAPE);
 
   Point<int> get direction {
     if (left) {
