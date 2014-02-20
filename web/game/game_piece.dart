@@ -7,8 +7,9 @@ part of tactics;
 class GamePiece extends Entity {
   Sprite _view;
   Point<int> _pos;
+  Map<String, ImageElement> _menuImages;
 
-  GamePiece(Map<String, ImageElement> images, this._pos) {
+  GamePiece(Map<String, ImageElement> images, this._menuImages, this._pos) {
     _view = new Sprite(images, scalePoint(_pos, TILE_WIDTH_PX));
   }
 
@@ -33,10 +34,24 @@ class GamePiece extends Entity {
       return blockInputWhile(_view.slideTo(scalePoint(_pos, TILE_WIDTH_PX), 270));
     }
     if (controller.actionRecent) {
-      _view.setFacing(new Point(0, 1));
-      return true;
+      var menu = new PictureMenu(getBattleActions());
+      add(menu);
+      return getFocusStack().enter(menu.selectItemLoop).then((item) {
+        menu.die();
+        if (item == PictureMenu.CANCELED) {
+          return makeMoveInputLoop;
+        }
+        print('doing $item');
+        _view.setFacing(new Point(0, 1));
+        return true;
+      });
     }
     return null;
+  }
+
+  List<MenuOption> getBattleActions() {
+    var options = ['attack', 'item', 'magic', 'stay'];
+    return new List.from(options.map((f) => new MenuOption(f, _menuImages['$f-icon'])));
   }
 
   Future makeMove() {

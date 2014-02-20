@@ -14,11 +14,8 @@ class Entity {
     var children = [];
     children.addAll(_children);
 
-    children.where((c) => !c.alive).forEach((c) => c.onDie());
-    children.where((c) => c.alive).forEach((c) {
-      c.ensureInited();
-      c.tick();
-    });
+    children.where((c) => c.alive).forEach((c) => c.tick());
+    children.clear();
 
     _children.removeWhere((c) => !c.alive);
 
@@ -67,6 +64,7 @@ class Entity {
   void addChild(Entity entity) {
     _children.add(entity);
     entity._parent = this;
+    entity.ensureInited();
   }
 
   void removeChild(Entity entity) {

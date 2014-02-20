@@ -59,13 +59,14 @@ void main() {
   var loader = new ImageLoader();
   var fighterImages = loader.loadImageMapFromDir('fighter');
   var enemyFighterImages = loader.loadImageMapFromDir('efighter');
+  var menuImages = loader.loadImages(['attack-icon', 'item-icon', 'magic-icon', 'stay-icon']);
   var tileImages = loader.loadImages(['grass', 'dirt']);
   var directions = ['left', 'right', 'up', 'down'];
   var tileMap = new TileMap((320 / 16).floor(), (240 / 16).floor(), tileImages);
   KeyFocusStack<Controller> focusStack = new KeyFocusStack<Controller>();
 
-  GamePiece fighter(x, y) => new GamePiece(fighterImages, new Point(x, y));
-  GamePiece efighter(x, y) => new GamePiece(enemyFighterImages, new Point(x, y));
+  GamePiece fighter(x, y) => new GamePiece(fighterImages, menuImages, new Point(x, y));
+  GamePiece efighter(x, y) => new GamePiece(enemyFighterImages, menuImages, new Point(x, y));
 
   var goodGuys = [fighter(0, 0), fighter(1, 0), fighter(0, 1)];
   var badGuys = [efighter(5, 5), efighter(8, 6), efighter(7, 9)];

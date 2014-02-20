@@ -15,3 +15,4 @@ part 'game/position_slider.dart';
 part 'game/game_piece.dart';
 part 'game/tile_map.dart';
 part 'game/cursor.dart';
+part 'game/picture_menu.dart';
