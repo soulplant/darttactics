@@ -7,8 +7,7 @@ class PositionSlider extends Entity {
   int _durationTicks;
   int _elapsedTicks = 0;
 
-  PositionSlider(this._thingToSlide, this._endPos, int durationMs) {
-    _startPos = _thingToSlide.pos;
+  PositionSlider(this._thingToSlide, this._startPos, this._endPos, int durationMs) {
     _durationTicks = max(1, msToTicks(durationMs));
   }
 

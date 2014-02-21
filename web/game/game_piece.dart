@@ -31,21 +31,21 @@ class GamePiece extends Entity {
     if (delta != null) {
       _pos += delta;
       _view.setFacing(delta);
-      return blockInputWhile(_view.slideTo(scalePoint(_pos, TILE_WIDTH_PX), 270));
+      return blockInputUntil(_view.slideTo(scalePoint(_pos, TILE_WIDTH_PX), 270));
     }
     if (controller.action) {
       var menu = new PictureMenu(getBattleActions(), 'stay');
       add(menu);
       return menu.selectItem().then((item) {
+        print('got $item from the menu');
         menu.die();
         if (item == PictureMenu.CANCELED) {
-          return makeMoveInputLoop;
+          return null;
         }
         _view.setFacing(new Point(0, 1));
         return true;
       });
     }
-    return null;
   }
 
   List<MenuOption> getBattleActions() {

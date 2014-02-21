@@ -68,7 +68,7 @@ main() {
       focusStack.enter((str) {
         lastRunWith = str;
         if (str == 'block')
-          return focusStack.blockInputWhile(completer.future);
+          return focusStack.blockInputUntil(completer.future);
       });
       expect(lastRunWith, equals(null));
       focusStack.inputUpdated('hi');

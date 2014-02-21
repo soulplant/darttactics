@@ -62,6 +62,9 @@ class Entity {
   }
 
   void addChild(Entity entity) {
+    if (entity._parent != null) {
+      throw new Exception("parent should be null when added");
+    }
     _children.add(entity);
     entity._parent = this;
     entity.ensureInited();
@@ -79,7 +82,22 @@ class Entity {
     return _focusStack;
   }
 
-  Future blockInputWhile(Future f) => getFocusStack().blockInputWhile(f);
+  Function blockUntilDead(Entity e) {
+    bool eIsAdded = false;
+    bool eIsDead = false;
+    e.onDead.then((_) => eIsDead = true);
+    return (_) {
+      if (!eIsAdded) {
+        add(e);
+        eIsAdded = true;
+      }
+      if (eIsDead)
+        return true;
+    };
+  }
+
+  Future enter(Function f) => getFocusStack().enter(f);
+  Future blockInputUntil(Future f) => getFocusStack().blockInputUntil(f);
 
   bool get alive => _alive;
   Future get onDead => _completer.future;

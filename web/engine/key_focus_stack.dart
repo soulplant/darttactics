@@ -47,7 +47,7 @@ class KeyFocusStack<T> {
     }
   }
 
-  Future blockInputWhile(Future future) {
+  Future blockInputUntil(Future future) {
     future.then((_) => _exit(null));
     return enter((input) => null);
   }

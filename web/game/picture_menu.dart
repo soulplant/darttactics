@@ -54,16 +54,11 @@ class PictureMenu extends Entity implements Positioned {
   Point<int> get pos => _pos;
 
   Future<String> selectItem() {
-    var slider = new PositionSlider(this, targetPosition, 180);
-    add(slider);
-
-    return blockInputWhile(slider.onDead).then((_) {
-      return getFocusStack().enter(selectItemLoop).then((selected) {
-        var slider = new PositionSlider(this, startPosition, 180);
-        add(slider);
-        return getFocusStack().blockInputWhile(slider.onDead).then((_) => selected);
-      });
-    });
+    var slideIn = blockUntilDead(new PositionSlider(this, pos, targetPosition, MENU_SLIDE_IN_OUT_MS));
+    var slideOut = blockUntilDead(new PositionSlider(this, targetPosition, pos, MENU_SLIDE_IN_OUT_MS));
+    return enter(slideIn).then((_) =>
+        enter(selectItemLoop).then((selection) =>
+            enter(slideOut).then((_) => selection)));
   }
 
   void set pos(Point<int> point) {

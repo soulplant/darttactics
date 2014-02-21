@@ -19,7 +19,7 @@ class Sprite extends Entity implements Positioned {
   }
 
   Future slideTo(Point<int> target, int durationMs) {
-    var slider = new PositionSlider(this, target, durationMs);
+    var slider = new PositionSlider(this, _pos, target, durationMs);
     add(slider);
     return slider.onDead;
   }
