@@ -1,14 +1,14 @@
 part of tactics;
 
 class PositionSlider extends Entity {
-  Sprite _sprite;
+  Positioned _thingToSlide;
   Point<int> _endPos;
   Point<int> _startPos;
   int _durationTicks;
   int _elapsedTicks = 0;
 
-  PositionSlider(this._sprite, this._endPos, int durationMs) {
-    _startPos = _sprite.pos;
+  PositionSlider(this._thingToSlide, this._endPos, int durationMs) {
+    _startPos = _thingToSlide.pos;
     _durationTicks = max(1, msToTicks(durationMs));
   }
 
@@ -18,7 +18,7 @@ class PositionSlider extends Entity {
     var delta = _endPos - _startPos;
     delta = new Point<int>((percentComplete * delta.x).floor(),
         (percentComplete * delta.y).floor());
-    _sprite.setPosition(_startPos + delta);
+    _thingToSlide.pos = _startPos + delta;
     if (_elapsedTicks == _durationTicks) {
       die();
     }

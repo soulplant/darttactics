@@ -33,15 +33,14 @@ class GamePiece extends Entity {
       _view.setFacing(delta);
       return blockInputWhile(_view.slideTo(scalePoint(_pos, TILE_WIDTH_PX), 270));
     }
-    if (controller.actionRecent) {
-      var menu = new PictureMenu(getBattleActions());
+    if (controller.action) {
+      var menu = new PictureMenu(getBattleActions(), 'stay');
       add(menu);
-      return getFocusStack().enter(menu.selectItemLoop).then((item) {
+      return menu.selectItem().then((item) {
         menu.die();
         if (item == PictureMenu.CANCELED) {
           return makeMoveInputLoop;
         }
-        print('doing $item');
         _view.setFacing(new Point(0, 1));
         return true;
       });

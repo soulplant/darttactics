@@ -1,6 +1,6 @@
 part of tactics;
 
-class Sprite extends Entity {
+class Sprite extends Entity implements Positioned {
   Point<int> _pos;
   Map<String, ImageElement> _images;
   String _facing = 'down';
@@ -36,7 +36,7 @@ class Sprite extends Entity {
     }
   }
 
-  setPosition(Point<int> point) {
+  void set pos(Point<int> point) {
     _pos = point;
   }
 }
