@@ -8,8 +8,9 @@ class GamePiece extends Entity {
   Sprite _view;
   Point<int> _pos;
   Map<String, ImageElement> _menuImages;
+  PictureMenuRunner _menuRunner;
 
-  GamePiece(Map<String, ImageElement> images, this._menuImages, this._pos) {
+  GamePiece(Map<String, ImageElement> images, this._menuRunner, this._pos) {
     _view = new Sprite(images, scalePoint(_pos, TILE_WIDTH_PX));
   }
 
@@ -33,12 +34,10 @@ class GamePiece extends Entity {
       _view.setFacing(delta);
       return blockInputUntil(_view.slideTo(scalePoint(_pos, TILE_WIDTH_PX), 270));
     }
+
     if (controller.action) {
-      var menu = new PictureMenu(getBattleActions(), 'stay');
-      add(menu);
-      return menu.selectItem().then((item) {
+      return _menuRunner.runMenu('stay').then((item) {
         print('got $item from the menu');
-        menu.die();
         if (item == PictureMenu.CANCELED) {
           return null;
         }
@@ -46,11 +45,6 @@ class GamePiece extends Entity {
         return true;
       });
     }
-  }
-
-  List<MenuOption> getBattleActions() {
-    var options = ['attack', 'item', 'magic', 'stay'];
-    return new List.from(options.map((f) => new MenuOption(f, _menuImages['$f-icon'])));
   }
 
   Future makeMove() {

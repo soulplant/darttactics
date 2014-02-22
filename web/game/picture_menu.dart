@@ -17,13 +17,30 @@ class MenuOption extends Entity {
   void draw(CanvasRenderingContext2D context) {
     context.drawImage(_image, _pos.x, _pos.y);
     if (_selected) {
-      context.fillStyle = 'solid 1px';
+      context.strokeStyle = 'black';
       context.strokeRect(_pos.x, _pos.y, _image.width + 1, _image.height + 1);
     }
   }
 
   void set selected(bool value) {
     _selected = value;
+  }
+}
+
+class PictureMenuRunner {
+  Entity _entity;
+  Map<String, ImageElement> _images;
+  PictureMenuRunner(this._entity, this._images);
+
+  Future<String> runMenu(String startingOption) {
+    var optionNames = ['attack', 'item', 'magic', 'stay'];
+    var options = new List.from(optionNames.map((n) => new MenuOption(n, _images['$n-icon'])));
+    var menu = new PictureMenu(options, startingOption);
+    _entity.add(menu);
+    return menu.selectItem().then((item) {
+      menu.die();
+      return item;
+    });
   }
 }
 
@@ -34,10 +51,12 @@ class PictureMenu extends Entity implements Positioned {
   Point<int> _pos;
 
   PictureMenu(this._options, String startingOption) {
-    for (var o in _options) {
-      if (o.label == startingOption) {
-        _selected = o;
+    for (var option in _options) {
+      if (option.label == startingOption) {
+        _selected = option;
       }
+      option.selected = option.label == startingOption;
+      addChild(option);
     }
     pos = startPosition;
   }
@@ -68,18 +87,6 @@ class PictureMenu extends Entity implements Positioned {
       var o = _options[i];
       o.pos = new Point<int>(point.x + offsets[i][0] * TILE_WIDTH_PX,
           point.y + offsets[i][1] * TILE_HEIGHT_PX);
-    }
-  }
-
-  void onInit() {
-    for (var o in _options) {
-      add(o);
-    }
-  }
-
-  void onDie() {
-    for (var o in _options) {
-      o.die();
     }
   }
 

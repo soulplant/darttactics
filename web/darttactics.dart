@@ -47,6 +47,13 @@ class ImageLoader {
   void addListener(Function listener) => _listeners.add(listener);
 }
 
+
+List<MenuOption> getBattleActions(ImageLoader loader) {
+  var options = ['attack', 'item', 'magic', 'stay'];
+  var optionImages = loader.loadImages(new List.from(options.map((option) => '$option-icon')));
+  return new List.from(options.map((f) => new MenuOption(f, optionImages['$f-icon'])));
+}
+
 void main() {
   Stats s = new Stats();
   document.body.children.add(s.container);
@@ -64,14 +71,14 @@ void main() {
   var directions = ['left', 'right', 'up', 'down'];
   var tileMap = new TileMap((320 / 16).floor(), (240 / 16).floor(), tileImages);
   KeyFocusStack<Controller> focusStack = new KeyFocusStack<Controller>();
+  var root = new Entity(focusStack);
+  var menuRunner = new PictureMenuRunner(root, menuImages);
 
-  GamePiece fighter(x, y) => new GamePiece(fighterImages, menuImages, new Point(x, y));
-  GamePiece efighter(x, y) => new GamePiece(enemyFighterImages, menuImages, new Point(x, y));
+  GamePiece fighter(x, y) => new GamePiece(fighterImages, menuRunner, new Point(x, y));
+  GamePiece efighter(x, y) => new GamePiece(enemyFighterImages, menuRunner, new Point(x, y));
 
   var goodGuys = [fighter(0, 0), fighter(1, 0), fighter(0, 1)];
   var badGuys = [efighter(5, 5), efighter(8, 6), efighter(7, 9)];
-
-  var root = new Entity(focusStack);
   for (var g in goodGuys) {
     root.add(g);
   }
