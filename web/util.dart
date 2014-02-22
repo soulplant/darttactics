@@ -39,4 +39,6 @@ int signum(int x) {
   return 0;
 }
 
+abs(x) => x < 0 ? -x : x;
+
 Point scalePoint(Point p, int factor) => new Point(p.x * factor, p.y * factor);

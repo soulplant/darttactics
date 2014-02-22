@@ -9,9 +9,10 @@ class Cursor extends Entity {
   bool _reachedTarget = true;
   Completer _completion;
 
-  Cursor(this._pos) {
+  Cursor(Entity root, this._pos) {
     _target = _pos;
     _realPos = new Point<double>(_pos.x.toDouble(), _pos.y.toDouble());
+    root.add(this);
   }
 
   void tick() {
@@ -31,6 +32,10 @@ class Cursor extends Entity {
     return _completion.future;
   }
 
+  Future moveToTargetAndDie(Point<int> target) {
+    return moveToTarget(target).then((_) => die());
+  }
+
   moveCloserToTarget() {
     if (_completion != null && _pos == _target) {
       _completion.complete();
@@ -42,4 +47,6 @@ class Cursor extends Entity {
     _realPos += new Point<double>(dx, dy);
     _pos = new Point<int>(_realPos.x.floor(), _realPos.y.floor());
   }
+
+  bool get isAtTarget => _pos == _target;
 }

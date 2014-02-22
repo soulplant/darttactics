@@ -5,7 +5,7 @@ class Entity {
   bool _alive = true;
   bool _inited = false;
   List<Entity> _children = [];
-  Completer _completer = new Completer();
+  Completer _completer = new Completer.sync();
   KeyFocusStack _focusStack;
 
   Entity([this._focusStack]);
@@ -14,7 +14,7 @@ class Entity {
     var children = [];
     children.addAll(_children);
 
-    children.where((c) => c.alive).forEach((c) => c.tick());
+    children.where((c) => c.alive).forEach((c) => c.baseTick());
     children.clear();
 
     _children.removeWhere((c) => !c.alive);
@@ -41,12 +41,13 @@ class Entity {
 
   void tick() {}
 
-  void add(Entity entity) {
+  Entity add(Entity entity) {
     if (_parent == null) {
       addChild(entity);
     } else {
       _parent.add(entity);
     }
+    return entity;
   }
 
   void remove(Entity entity) {

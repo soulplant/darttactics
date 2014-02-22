@@ -17,3 +17,4 @@ part 'game/tile_map.dart';
 part 'game/cursor.dart';
 part 'game/picture_menu.dart';
 part 'game/positioned.dart';
+part 'game/game_board.dart';

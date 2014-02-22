@@ -68,14 +68,23 @@ void main() {
   var enemyFighterImages = loader.loadImageMapFromDir('efighter');
   var menuImages = loader.loadImages(['attack-icon', 'item-icon', 'magic-icon', 'stay-icon']);
   var tileImages = loader.loadImages(['grass', 'dirt']);
-  var directions = ['left', 'right', 'up', 'down'];
   var tileMap = new TileMap((320 / 16).floor(), (240 / 16).floor(), tileImages);
   KeyFocusStack<Controller> focusStack = new KeyFocusStack<Controller>();
   var root = new Entity(focusStack);
   var menuRunner = new PictureMenuRunner(root, menuImages);
 
-  GamePiece fighter(x, y) => new GamePiece(fighterImages, menuRunner, new Point(x, y));
-  GamePiece efighter(x, y) => new GamePiece(enemyFighterImages, menuRunner, new Point(x, y));
+  var board = new GameBoard();
+
+  GamePiece fighter(x, y) {
+    var p = new GamePiece(board, fighterImages, menuRunner, new Point(x, y), 0);
+    board.addPiece(p);
+    return p;
+  }
+  GamePiece efighter(x, y) {
+    var p = new GamePiece(board, enemyFighterImages, menuRunner, new Point(x, y), 1);
+    board.addPiece(p);
+    return p;
+  }
 
   var goodGuys = [fighter(0, 0), fighter(1, 0), fighter(0, 1)];
   var badGuys = [efighter(5, 5), efighter(8, 6), efighter(7, 9)];
@@ -86,21 +95,23 @@ void main() {
     root.add(b);
   }
 
-  loop(List<GamePiece> currentTeam, List<GamePiece> nextTeam) {
-    var currentPlayer = currentTeam.first;
-    var lastPlayer = nextTeam.last;
-    Cursor cursor = new Cursor(lastPlayer.viewPos);
-    root.add(cursor);
-    cursor.moveToTarget(currentPlayer.viewPos).then((_) {
-      cursor.die();
-      currentPlayer.makeMove().then((_) {
-        currentTeam.add(currentTeam.removeAt(0));
-        loop(nextTeam, currentTeam);
-      });
-    });
+  Future moveCursorBetween(Point<int> start, Point<int> end) {
+    return new Cursor(root, start).moveToTargetAndDie(end);
   }
 
-  loop(goodGuys, badGuys);
+  var lastPosition = new Point(0, 0);
+  focusStack.enter((controller) {
+    var piece = board.currentPiece;
+    return focusStack.blockInputUntil(moveCursorBetween(lastPosition, piece.viewPos)).then((_) {
+      return piece.makeMove().then((_) {
+        if (board.isGameOver) {
+          return true;
+        }
+        board.nextTurn();
+        lastPosition = piece.viewPos;
+      });
+    });
+  });
 
   double startTime = -1.0;
   int tickCount = 0;
@@ -121,7 +132,9 @@ void main() {
     tileMap.draw(context);
     root.draw(context);
     s.end();
-    window.animationFrame.then(gameLoop);
+    if (!board.isGameOver) {
+      window.animationFrame.then(gameLoop);
+    }
   }
   loader.addListener(() => window.animationFrame.then(gameLoop));
   document.body.onKeyDown.listen((e) => controller.onKeyDown(e.keyCode));
