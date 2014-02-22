@@ -67,11 +67,15 @@ void main() {
   var fighterImages = loader.loadImageMapFromDir('fighter');
   var enemyFighterImages = loader.loadImageMapFromDir('efighter');
   var menuImages = loader.loadImages(['attack-icon', 'item-icon', 'magic-icon', 'stay-icon']);
+  var explosionImages = loader.loadImages(['explosion-1', 'explosion-2', 'explosion-3']);
   var tileImages = loader.loadImages(['grass', 'dirt']);
   var tileMap = new TileMap((320 / 16).floor(), (240 / 16).floor(), tileImages);
   KeyFocusStack<Controller> focusStack = new KeyFocusStack<Controller>();
   var root = new Entity(focusStack);
   var menuRunner = new PictureMenuRunner(root, menuImages);
+
+  fighterImages.addAll(explosionImages);
+  enemyFighterImages.addAll(explosionImages);
 
   var board = new GameBoard();
 
@@ -102,8 +106,8 @@ void main() {
   var lastPosition = new Point(0, 0);
   focusStack.enter((controller) {
     var piece = board.currentPiece;
-    return focusStack.blockInputUntil(moveCursorBetween(lastPosition, piece.viewPos)).then((_) {
-      return piece.makeMove().then((_) {
+    return focusStack.blockInputUntil(moveCursorBetween(lastPosition, piece.viewPos)).exit((_) {
+      return piece.makeMove().exit((_) {
         if (board.isGameOver) {
           return true;
         }
@@ -111,6 +115,8 @@ void main() {
         lastPosition = piece.viewPos;
       });
     });
+  }).exit((r) {
+    print("The game is over");
   });
 
   double startTime = -1.0;
@@ -132,9 +138,7 @@ void main() {
     tileMap.draw(context);
     root.draw(context);
     s.end();
-    if (!board.isGameOver) {
-      window.animationFrame.then(gameLoop);
-    }
+    window.animationFrame.then(gameLoop);
   }
   loader.addListener(() => window.animationFrame.then(gameLoop));
   document.body.onKeyDown.listen((e) => controller.onKeyDown(e.keyCode));

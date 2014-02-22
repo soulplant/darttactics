@@ -6,7 +6,7 @@ class Entity {
   bool _inited = false;
   List<Entity> _children = [];
   Completer _completer = new Completer.sync();
-  KeyFocusStack _focusStack;
+  KeyFocusStack<Controller> _focusStack;
 
   Entity([this._focusStack]);
 
@@ -76,29 +76,20 @@ class Entity {
     entity._parent = null;
   }
 
-  KeyFocusStack getFocusStack() {
+  KeyFocusStack<Controller> getFocusStack() {
     if (_parent != null) {
       return _parent.getFocusStack();
     }
     return _focusStack;
   }
 
-  Function blockUntilDead(Entity e) {
-    bool eIsAdded = false;
-    bool eIsDead = false;
-    e.onDead.then((_) => eIsDead = true);
-    return (_) {
-      if (!eIsAdded) {
-        add(e);
-        eIsAdded = true;
-      }
-      if (eIsDead)
-        return true;
-    };
+  Exit blockUntilDead(Entity e) {
+    add(e);
+    return blockInputUntil(e.onDead);
   }
 
-  Future enter(Function f) => getFocusStack().enter(f);
-  Future blockInputUntil(Future f) => getFocusStack().blockInputUntil(f);
+  Exit enter(f(Controller controller)) => getFocusStack().enter(f);
+  Exit blockInputUntil(Future f) => getFocusStack().blockInputUntil(f);
 
   bool get alive => _alive;
   Future get onDead => _completer.future;

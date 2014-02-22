@@ -32,12 +32,12 @@ class PictureMenuRunner {
   Map<String, ImageElement> _images;
   PictureMenuRunner(this._entity, this._images);
 
-  Future<String> runMenu(String startingOption) {
+  Exit<String> runMenu(String startingOption) {
     var optionNames = ['attack', 'item', 'magic', 'stay'];
     var options = new List.from(optionNames.map((n) => new MenuOption(n, _images['$n-icon'])));
     var menu = new PictureMenu(options, startingOption);
     _entity.add(menu);
-    return menu.selectItem().then((item) {
+    return menu.selectItem().exit((item) {
       menu.die();
       return item;
     });
@@ -72,12 +72,12 @@ class PictureMenu extends Entity implements Positioned {
 
   Point<int> get pos => _pos;
 
-  Future<String> selectItem() {
-    var slideIn = blockUntilDead(new PositionSlider(this, pos, targetPosition, MENU_SLIDE_IN_OUT_MS));
-    var slideOut = blockUntilDead(new PositionSlider(this, targetPosition, pos, MENU_SLIDE_IN_OUT_MS));
-    return enter(slideIn).then((_) =>
-        enter(selectItemLoop).then((selection) =>
-            enter(slideOut).then((_) => selection)));
+  Exit<String> selectItem() {
+    var slideIn = new PositionSlider(this, pos, targetPosition, MENU_SLIDE_IN_OUT_MS);
+    var slideOut = new PositionSlider(this, targetPosition, pos, MENU_SLIDE_IN_OUT_MS);
+    return blockUntilDead(slideIn).exit((_) =>
+        enter(selectItemLoop).exit((selection) =>
+            blockUntilDead(slideOut).exit((_) => selection)));
   }
 
   void set pos(Point<int> point) {

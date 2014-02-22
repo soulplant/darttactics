@@ -41,7 +41,7 @@ class GamePiece extends Entity {
     }
 
     if (controller.action) {
-      return _menuRunner.runMenu('stay').then((item) {
+      return _menuRunner.runMenu('stay').exit((item) {
         print('got $item from the menu');
         switch (item) {
           case PictureMenu.CANCELED:
@@ -61,20 +61,22 @@ class GamePiece extends Entity {
     }
   }
 
-  Future makeMove() {
+  Exit makeMove() {
     return enter(makeMoveInputLoop);
   }
 
-  Future runAttack() {
-    return enter(new ChooseAttackTarget(this, _board).run).then((target) {
+  Exit runAttack() {
+    return enter(new ChooseAttackTarget(this, _board).run).exit((target) {
       if (target is GamePiece) {
-        return enter(new DeathAnimation(target.view, 320).run).then((_) {
-          target.die();
-          return true;
+        return enter(new DeathSpinAnimation(target.view, 320).run).exit((_) {
+          return enter(new ExplodeAnimation(target.view, 320).run).exit((_) {
+            target.die();
+            return true;
+          });
         });
       }
       return true;
-    }).then((_) {
+    }).exit((_) {
       _view.setFacing(new Point<int>(0, 1));
       return true;
     });
@@ -98,7 +100,7 @@ class ChooseAttackTarget extends Entity {
       die();
       return true;
     }
-    return _cursor.moveToTarget(target.viewPos).then((_) {
+    return blockInputUntil(_cursor.moveToTarget(target.viewPos)).exit((_) {
       return enter(inputLoop);
     });
   }
@@ -124,6 +126,7 @@ class ChooseAttackTarget extends Entity {
       die();
       return target;
     }
+    return inputLoop;
   }
 
   void onDie() {
@@ -131,7 +134,7 @@ class ChooseAttackTarget extends Entity {
   }
 }
 
-class DeathAnimation extends Entity {
+class DeathSpinAnimation extends Entity {
   Sprite _sprite;
   int _duration;
   int _elapsed = 0;
@@ -139,7 +142,7 @@ class DeathAnimation extends Entity {
   int _ticksPerDirectionChange;
   var directions = [new Point(-1, 0), new Point(0, -1), new Point(1,0), new Point(0, 1)];
 
-  DeathAnimation(this._sprite, int durationMs) {
+  DeathSpinAnimation(this._sprite, int durationMs) {
     _duration = msToTicks(durationMs);
     _ticksPerDirectionChange = (_duration / (_rotations * 4)).floor();
     _sprite.add(this);
@@ -157,5 +160,26 @@ class DeathAnimation extends Entity {
 
   int get _currentFrame {
     return (_elapsed / _ticksPerDirectionChange).floor();
+  }
+}
+
+class ExplodeAnimation extends Entity {
+  Sprite _sprite;
+  int _duration;
+  int _elapsed = 0;
+  int _ticksPerFrame;
+
+  ExplodeAnimation(this._sprite, int durationMs) {
+    _duration = msToTicks(durationMs);
+    _ticksPerFrame = (_duration / 3).floor();
+  }
+
+  dynamic run(Controller controller) {
+    _elapsed++;
+    if (_elapsed >= _duration) {
+      return true;
+    }
+    int frame = min(3, 1 + (_elapsed / _ticksPerFrame).floor());
+    _sprite.setImage('explosion-$frame');
   }
 }

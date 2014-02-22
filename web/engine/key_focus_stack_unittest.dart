@@ -20,7 +20,7 @@ main() {
       }
       var c = new Controller();
       bool gotToHere = false;
-      focusStack.enter(handleInput).then((x) {
+      focusStack.enter(handleInput).exit((x) {
         expect(x, equals(5));
         gotToHere = true;
       });
@@ -41,15 +41,19 @@ main() {
             gotToHere = 3;
             return 'hi';
           });
-        }).then((x) {
+        }).exit((x) {
           expect(x, equals('hi'));
           return (c) {
             gotToHere = 4;
             return 15;
           };
         });
-      }).then((x) {
+      }).exit((x) {
+        gotToHere = 5;
         expect(x, equals(15));
+        return focusStack.enter((s) {
+          gotToHere = 6;
+        });
       });
       expect(gotToHere, equals(0));
       focusStack.inputUpdated("");
@@ -59,7 +63,30 @@ main() {
       focusStack.inputUpdated("");
       expect(gotToHere, equals(3));
       focusStack.inputUpdated("");
-      expect(gotToHere, equals(4));
+      expect(gotToHere, equals(5));
+      focusStack.inputUpdated("");
+      expect(gotToHere, equals(6));
+    });
+
+    test('exit chaining', () {
+      int gotToHere = 0;
+      focusStack.enter((_) => 'first').exit((_) =>
+          focusStack.enter((_) => 'second').exit((second) =>
+              focusStack.enter((_) => 'third').exit((result) {
+                expect(result, equals('third'));
+                expect(second, equals('second'));
+                gotToHere = 1;
+                return focusStack.enter((_) => 'asdf');
+              }))).exit((r) {
+                expect(r, equals('asdf'));
+                gotToHere = 2;
+              });
+      focusStack.inputUpdated("");
+      focusStack.inputUpdated("");
+      focusStack.inputUpdated("");
+      expect(gotToHere, equals(1));
+      focusStack.inputUpdated("");
+      expect(gotToHere, equals(2));
     });
 
     test('block input while', () {

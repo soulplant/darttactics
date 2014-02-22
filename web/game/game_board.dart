@@ -27,7 +27,7 @@ class GameBoard {
     _turnOrder[piece.team].remove(piece);
   }
 
-  GamePiece nextTurn() {
+  void nextTurn() {
     moveToEndOfTurnList(_currentPiece);
     int team = 1 - _currentPiece.team;
     _currentPiece = _turnOrder[team].first;

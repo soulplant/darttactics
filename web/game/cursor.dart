@@ -27,7 +27,7 @@ class Cursor extends Entity {
   }
 
   Future moveToTarget(Point<int> target) {
-    _completion = new Completer();
+    _completion = new Completer.sync();
     _target = target;
     return _completion.future;
   }
