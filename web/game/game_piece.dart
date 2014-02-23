@@ -1,21 +1,5 @@
 part of tactics;
 
-class Slider extends Entity {
-  Entity _parent;
-  VisualElement _view;
-  Point<int> _target;
-  int _durationTicks;
-
-  Slider(this._parent, this._view, this._target, int durationMs) {
-    _durationTicks = msToTicks(durationMs);
-    add(_parent);
-  }
-
-  void tick() {
-
-  }
-}
-
 /**
  * Represents a 'piece' in the game, ie: something that can move and attack in
  * the tactical game.
@@ -88,14 +72,11 @@ class GamePiece extends Entity {
         return enter(new DeathSpinAnimation(target.view, 480).run).exit((_) {
           return enter(new LinearAnimation(target.view, 'explosion', 640, 4).run).exit((_) {
             target.die();
+            _view.setFacing(new Point<int>(0, 1));
             return true;
           });
         });
       }
-      return true;
-    }).exit((_) {
-      _view.setFacing(new Point<int>(0, 1));
-      return true;
     });
   }
 }
@@ -117,9 +98,14 @@ class ChooseAttackTarget extends Entity {
       die();
       return true;
     }
-    return blockInputUntil(_cursor.moveToTarget(target.viewPos)).exit((_) {
+    return lookAtTarget().exit((_) {
       return enter(inputLoop);
     });
+  }
+
+  Exit lookAtTarget() {
+    _piece.view.setFacing(target.pos - _piece.pos);
+    return blockInputUntil(_cursor.moveToTarget(target.viewPos));
   }
 
   GamePiece get target => _targets.first;
@@ -127,21 +113,26 @@ class ChooseAttackTarget extends Entity {
   dynamic inputLoop(Controller controller) {
     if (_targets.isEmpty) {
       print('no enemies in range');
+      die();
       return true;
     }
     if (controller.left) {
       var piece = _targets.removeAt(0);
       _targets.add(piece);
-      return blockInputUntil(_cursor.moveToTarget(target.viewPos));
+      return lookAtTarget();
     }
     if (controller.right) {
       var piece = _targets.removeLast();
       _targets.insert(0, piece);
-      return blockInputUntil(_cursor.moveToTarget(target.viewPos));
+      return lookAtTarget();
     }
     if (controller.action) {
       die();
       return target;
+    }
+    if (controller.cancel) {
+      die();
+      return true;
     }
     return inputLoop;
   }
