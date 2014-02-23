@@ -7,8 +7,9 @@ class Entity {
   List<Entity> _children = [];
   Completer _completer = new Completer.sync();
   KeyFocusStack<Controller> _focusStack;
+  VisualElement _visualElement = null;
 
-  Entity([this._focusStack]);
+  Entity([this._focusStack = null, this._visualElement = null]);
 
   void baseTick() {
     var children = [];
@@ -41,6 +42,13 @@ class Entity {
 
   void tick() {}
 
+  Entity getRoot() {
+    if (_parent == null) {
+      return this;
+    }
+    return _parent.getRoot();
+  }
+
   Entity add(Entity entity) {
     if (_parent == null) {
       addChild(entity);
@@ -58,8 +66,12 @@ class Entity {
     }
   }
 
-  void draw(CanvasRenderingContext2D context) {
-    _children.forEach((c) => c.draw(context));
+  void addVisual(VisualElement element) {
+    getRoot()._visualElement.add(element);
+  }
+
+  void removeVisual(VisualElement element) {
+    getRoot()._visualElement.remove(element);
   }
 
   void addChild(Entity entity) {
@@ -81,6 +93,11 @@ class Entity {
       return _parent.getFocusStack();
     }
     return _focusStack;
+  }
+
+  Exit slideTo(Positioned view, Point startPoint, Point endPoint, int durationMs) {
+    var slider = new PositionSlider(view, startPoint, endPoint, durationMs);
+    return blockUntilDead(slider);
   }
 
   Exit blockUntilDead(Entity e) {

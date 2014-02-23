@@ -1,11 +1,27 @@
 part of tactics;
 
+class Slider extends Entity {
+  Entity _parent;
+  VisualElement _view;
+  Point<int> _target;
+  int _durationTicks;
+
+  Slider(this._parent, this._view, this._target, int durationMs) {
+    _durationTicks = msToTicks(durationMs);
+    add(_parent);
+  }
+
+  void tick() {
+
+  }
+}
+
 /**
  * Represents a 'piece' in the game, ie: something that can move and attack in
  * the tactical game.
  */
 class GamePiece extends Entity {
-  Sprite _view;
+  SpriteElement _view;
   Point<int> _pos;
   Map<String, ImageElement> _menuImages;
   GameBoard _board;
@@ -14,22 +30,23 @@ class GamePiece extends Entity {
   int _range = 1;
 
   GamePiece(this._board, Map<String, ImageElement> images, this._menuRunner, this._pos, this._team) {
-    _view = new Sprite(images, scalePoint(_pos, TILE_WIDTH_PX));
+    _view = new SpriteElement(images, 'down');
+    _view.pos = scalePoint(_pos, TILE_WIDTH_PX);
   }
-  Sprite get view => _view; // TODO remove?
+  SpriteElement get view => _view; // TODO remove?
   int get team => _team;
   int get range => _range;
 
   void onInit() {
-    add(_view);
+    addVisual(_view);
   }
 
   void onDie() {
-    _view.die();
+    removeVisual(_view);
     _view = null;
   }
 
-  Point<int> get viewPos => _view._pos;
+  Point<int> get viewPos => _view.pos;
   Point<int> get pos => _pos;
 
   dynamic makeMoveInputLoop(Controller controller) {
@@ -37,7 +54,7 @@ class GamePiece extends Entity {
     if (delta != null) {
       _pos += delta;
       _view.setFacing(delta);
-      return blockInputUntil(_view.slideTo(scalePoint(_pos, TILE_WIDTH_PX), 270));
+      return slideTo(_view, _view.pos, scalePoint(_pos, TILE_WIDTH_PX), 270);
     }
 
     if (controller.action) {
@@ -135,7 +152,7 @@ class ChooseAttackTarget extends Entity {
 }
 
 class DeathSpinAnimation {
-  Sprite _sprite;
+  SpriteElement _sprite;
   int _duration;
   int _elapsed = 0;
   int _rotations = 4;
@@ -162,7 +179,7 @@ class DeathSpinAnimation {
 }
 
 class LinearAnimation {
-  Sprite _sprite;
+  SpriteElement _sprite;
   int _duration;
   int _elapsed = 0;
   double _ticksPerFrame;
@@ -180,6 +197,6 @@ class LinearAnimation {
       return true;
     }
     int frame = min(_frameCount, 1 + (_elapsed / _ticksPerFrame).floor());
-    _sprite.setImage('$_animationName-$frame');
+    _sprite.frame = '$_animationName-$frame';
   }
 }

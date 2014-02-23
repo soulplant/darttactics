@@ -47,11 +47,39 @@ class ImageLoader {
   void addListener(Function listener) => _listeners.add(listener);
 }
 
+class Camera {
+  VisualElement _element;
+  int _x = 0;
+  int _y = 0;
+  Camera(this._element) {
+    moveTo(_x, _y);
+  }
 
-List<MenuOption> getBattleActions(ImageLoader loader) {
-  var options = ['attack', 'item', 'magic', 'stay'];
-  var optionImages = loader.loadImages(new List.from(options.map((option) => '$option-icon')));
-  return new List.from(options.map((f) => new MenuOption(f, optionImages['$f-icon'])));
+  void moveTo(int x, int y) {
+    _x = x;
+    _y = y;
+    _element.x = -1 - x;
+    _element.y = -1 - y;
+  }
+}
+
+class CameraDragger {
+  Element _elem;
+  int _x = 0;
+  int _y = 0;
+  CameraDragger(this._elem, Camera c) {
+    bool mouseDown = false;
+    _elem.onMouseDown.listen((_) => mouseDown = true);
+    _elem.onMouseUp.listen((_) => mouseDown = false);
+    _elem.onMouseMove.listen((e) {
+      if (mouseDown) {
+        print(e.movement);
+        _x -= e.movement.x;
+        _y -= e.movement.y;
+        c.moveTo(_x, _y);
+      }
+    });
+  }
 }
 
 void main() {
@@ -62,6 +90,7 @@ void main() {
   CanvasRenderingContext2D context = canvas.getContext('2d');
   context.imageSmoothingEnabled = false;
   context.translate(0.5, 0.5);
+
   Controller controller = new Controller();
   var loader = new ImageLoader();
   var fighterImages = loader.loadImageMapFromDir('fighter');
@@ -70,8 +99,14 @@ void main() {
   var explosionImages = loader.loadImages(['explosion-1', 'explosion-2', 'explosion-3', 'explosion-4']);
   var tileImages = loader.loadImages(['grass', 'dirt']);
   var tileMap = new TileMap((320 / 16).floor(), (240 / 16).floor(), tileImages);
+  var spriteImages = loader.loadImages(['grid']);
+
+  var visualRoot = new VisualElement();
+  var camera = new Camera(visualRoot);
+  new CameraDragger(canvas, camera);
+  visualRoot.add(tileMap);
   KeyFocusStack<Controller> focusStack = new KeyFocusStack<Controller>();
-  var root = new Entity(focusStack);
+  var root = new Entity(focusStack, visualRoot);
   var menuRunner = new PictureMenuRunner(root, menuImages);
 
   fighterImages.addAll(explosionImages);
@@ -135,8 +170,7 @@ void main() {
       tickCount++;
     }
     context.clearRect(0, 0, canvas.width, canvas.height);
-    tileMap.draw(context);
-    root.draw(context);
+    visualRoot.draw(context);
     s.end();
     window.animationFrame.then(gameLoop);
   }

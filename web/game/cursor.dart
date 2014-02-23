@@ -3,27 +3,32 @@ part of tactics;
 class Cursor extends Entity {
   static const int CURSOR_PPS = 120;
   static const double CURSOR_PPT = CURSOR_PPS / FPS;
-  Point<int> _pos;
   Point<double> _realPos;
   Point<int> _target;
   bool _reachedTarget = true;
   Completer _completion;
+  SquareElement _view = new SquareElement();
 
-  Cursor(Entity root, this._pos) {
-    _target = _pos;
-    _realPos = new Point<double>(_pos.x.toDouble(), _pos.y.toDouble());
+  Cursor(Entity root, pos) {
+    _realPos = new Point<double>(pos.x.toDouble(), pos.y.toDouble());
+    _view.pos = pos;
+    _view.width = TILE_WIDTH_PX;
+    _view.height = TILE_HEIGHT_PX;
     root.add(this);
+  }
+
+  void onInit() {
+    addVisual(_view);
+  }
+
+  void onDie() {
+    removeVisual(_view);
   }
 
   void tick() {
     if (_completion != null) {
       moveCloserToTarget();
     }
-  }
-
-  void draw(CanvasRenderingContext2D context) {
-    context.strokeStyle = 'black';
-    context.strokeRect(_pos.x, _pos.y, 16, 16);
   }
 
   Future moveToTarget(Point<int> target) {
@@ -37,16 +42,16 @@ class Cursor extends Entity {
   }
 
   moveCloserToTarget() {
-    if (_completion != null && _pos == _target) {
+    if (_completion != null && _view.pos == _target) {
       _completion.complete();
       _completion = null;
       return;
     }
-    var dx = clampDouble((_target.x - _pos.x).toDouble(), CURSOR_PPT);
-    var dy = clampDouble((_target.y - _pos.y).toDouble(), CURSOR_PPT);
+    var dx = clampDouble((_target.x - _view.pos.x).toDouble(), CURSOR_PPT);
+    var dy = clampDouble((_target.y - _view.pos.y).toDouble(), CURSOR_PPT);
     _realPos += new Point<double>(dx, dy);
-    _pos = new Point<int>(_realPos.x.floor(), _realPos.y.floor());
+    _view.pos = new Point<int>(_realPos.x.floor(), _realPos.y.floor());
   }
 
-  bool get isAtTarget => _pos == _target;
+  bool get isAtTarget => _view.pos == _target;
 }
