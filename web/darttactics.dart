@@ -67,7 +67,7 @@ void main() {
   var fighterImages = loader.loadImageMapFromDir('fighter');
   var enemyFighterImages = loader.loadImageMapFromDir('efighter');
   var menuImages = loader.loadImages(['attack-icon', 'item-icon', 'magic-icon', 'stay-icon']);
-  var explosionImages = loader.loadImages(['explosion-1', 'explosion-2', 'explosion-3']);
+  var explosionImages = loader.loadImages(['explosion-1', 'explosion-2', 'explosion-3', 'explosion-4']);
   var tileImages = loader.loadImages(['grass', 'dirt']);
   var tileMap = new TileMap((320 / 16).floor(), (240 / 16).floor(), tileImages);
   KeyFocusStack<Controller> focusStack = new KeyFocusStack<Controller>();

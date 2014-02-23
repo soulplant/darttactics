@@ -68,8 +68,8 @@ class GamePiece extends Entity {
   Exit runAttack() {
     return enter(new ChooseAttackTarget(this, _board).run).exit((target) {
       if (target is GamePiece) {
-        return enter(new DeathSpinAnimation(target.view, 320).run).exit((_) {
-          return enter(new ExplodeAnimation(target.view, 320).run).exit((_) {
+        return enter(new DeathSpinAnimation(target.view, 480).run).exit((_) {
+          return enter(new LinearAnimation(target.view, 'explosion', 640, 4).run).exit((_) {
             target.die();
             return true;
           });
@@ -134,24 +134,22 @@ class ChooseAttackTarget extends Entity {
   }
 }
 
-class DeathSpinAnimation extends Entity {
+class DeathSpinAnimation {
   Sprite _sprite;
   int _duration;
   int _elapsed = 0;
   int _rotations = 4;
-  int _ticksPerDirectionChange;
+  double _ticksPerDirectionChange;
   var directions = [new Point(-1, 0), new Point(0, -1), new Point(1,0), new Point(0, 1)];
 
   DeathSpinAnimation(this._sprite, int durationMs) {
     _duration = msToTicks(durationMs);
-    _ticksPerDirectionChange = (_duration / (_rotations * 4)).floor();
-    _sprite.add(this);
+    _ticksPerDirectionChange = _duration / (_rotations * 4);
   }
 
   dynamic run(Controller controller) {
     _elapsed++;
     if (_elapsed == _duration) {
-      die();
       return true;
     }
     var dir = directions[_currentFrame % directions.length];
@@ -163,15 +161,17 @@ class DeathSpinAnimation extends Entity {
   }
 }
 
-class ExplodeAnimation extends Entity {
+class LinearAnimation {
   Sprite _sprite;
   int _duration;
   int _elapsed = 0;
-  int _ticksPerFrame;
+  double _ticksPerFrame;
+  int _frameCount;
+  String _animationName;
 
-  ExplodeAnimation(this._sprite, int durationMs) {
+  LinearAnimation(this._sprite, this._animationName, int durationMs, this._frameCount) {
     _duration = msToTicks(durationMs);
-    _ticksPerFrame = (_duration / 3).floor();
+    _ticksPerFrame = _duration / _frameCount;
   }
 
   dynamic run(Controller controller) {
@@ -179,7 +179,7 @@ class ExplodeAnimation extends Entity {
     if (_elapsed >= _duration) {
       return true;
     }
-    int frame = min(3, 1 + (_elapsed / _ticksPerFrame).floor());
-    _sprite.setImage('explosion-$frame');
+    int frame = min(_frameCount, 1 + (_elapsed / _ticksPerFrame).floor());
+    _sprite.setImage('$_animationName-$frame');
   }
 }
