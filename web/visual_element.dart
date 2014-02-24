@@ -50,27 +50,39 @@ class VisualElement implements Positioned {
 }
 
 class SpriteElement extends VisualElement {
-  Map<String, ImageElement> _images;
-  String _currentImageName;
+  SpriteMap _spriteMap;
   bool _hasBorder = false;
+  List<Image> _animation;
+  int _frame = 0;
 
-  SpriteElement(this._images, this._currentImageName) {
-    bounds = new Rectangle<int>(0, 0, _currentImage.width, _currentImage.height);
+  SpriteElement(this._spriteMap, String imageName) {
+    _animation = _spriteMap.getAnimation(imageName);
+    _checkAnimation(imageName);
   }
 
-  ImageElement get _currentImage => _images[_currentImageName];
-  void set frame(String f) {
-    if (!_images.containsKey(_currentImageName)) {
-      throw new Exception("Don't have image $f");
+  void _checkAnimation(imageName) {
+    if (_animation == null) {
+      print(_spriteMap.animations);
+      throw new Exception("unknown animation $imageName");
     }
-    _currentImageName = f;
+  }
+
+  void set animation(String f) {
+    _animation = _spriteMap.getAnimation(f);
+    _checkAnimation(f);
+  }
+
+  int get frameCount => _animation.length;
+
+  void set frame(int x) {
+    _frame = x;
   }
 
   void doDraw(CanvasRenderingContext2D context) {
-    context.drawImage(_currentImage, 0, 0);
+    _animation[_frame].draw(context, 0, 0);
     if (_hasBorder) {
       context.fillStyle = 'black';
-      context.strokeRect(0, 0, _currentImage.width, _currentImage.height);
+      context.strokeRect(0, 0, _spriteMap.widthPx + 1, _spriteMap.heightPx+ 1);
     }
   }
 
@@ -80,13 +92,13 @@ class SpriteElement extends VisualElement {
 
   setFacing(Point<int> delta) {
     if (delta.x < 0) {
-      frame = 'left';
+      animation = 'left';
     } else if (delta.x > 0) {
-      frame = 'right';
+      animation = 'right';
     } else if (delta.y < 0) {
-      frame = 'up';
+      animation = 'up';
     } else if (delta.y > 0) {
-      frame = 'down';
+      animation = 'down';
     }
   }
 }

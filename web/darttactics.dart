@@ -7,46 +7,6 @@ import 'tactics.dart';
 
 import 'util.dart';
 
-class ImageLoader {
-  int _outstandingLoads = 0;
-  List<Function> _listeners = [];
-
-  ImageElement loadImage(String filename) {
-    _outstandingLoads++;
-    var image = new ImageElement(src: filename);
-    image.onLoad.first.then(onLoadDone);
-    return image;
-  }
-
-  Map<String, ImageElement> loadImages(List<String> names) {
-    var result = {};
-    for (var name in names) {
-      result[name] = loadImage('gfx/' + name + '.png');
-    }
-    return result;
-  }
-
-  void onLoadDone(Event event) {
-    _outstandingLoads--;
-    if (_outstandingLoads == 0) {
-      for (var listener in _listeners) {
-        listener();
-      }
-    }
-  }
-
-  Map<String, ImageElement> loadImageMapFromDir(String name) {
-    var images = {};
-    for (var direction in ['left', 'right', 'up', 'down']) {
-      var filename = 'gfx/' + name + '-' + direction[0] + '.png';
-      images[direction] = loadImage(filename);
-    }
-    return images;
-  }
-
-  void addListener(Function listener) => _listeners.add(listener);
-}
-
 class Camera {
   VisualElement _element;
   int _x = 0;
@@ -82,9 +42,81 @@ class CameraDragger {
   }
 }
 
+void mainForSpriteRunner() {
+  CanvasElement canvas = querySelector("#canvas");
+  CanvasRenderingContext2D context = canvas.getContext('2d');
+  context.imageSmoothingEnabled = false;
+  context.translate(0.5, 0.5);
+
+  Controller controller = new Controller();
+  var loader = new ImageLoader(TILE_WIDTH_PX, TILE_HEIGHT_PX);
+  var image = loader.loadImage('gfx/fighter.png');
+  loader.addListener(() {
+    var sm = new SpriteMap(24, 24);
+    sm.addAnimationsFromSpriteSheet(image, ['down', 'left', 'right', 'up']);
+  });
+}
+
+class Sprites {
+  ImageLoader loader;
+  List<Image> explosion;
+  Map<String, SpriteMap> pieceMaps = {};
+  SpriteMap battleMenu;
+  SpriteMap tiles;
+
+  Sprites(this.loader) {
+    explosion = loader.loadImageList(['explosion-1', 'explosion-2', 'explosion-3', 'explosion-4']);
+    var names = ['fighter', 'hamster', 'wizard', 'bear', 'winged'];
+    for (var name in names) {
+      pieceMaps[name] = singleImageGamePiece('gfx/$name.png');
+    }
+    battleMenu = loadBattleMenu();
+    tiles = loadTiles();
+  }
+
+  SpriteMap loadTiles() {
+    var imageMap = loader.loadImages(['grass', 'dirt']);
+    SpriteMap result = new SpriteMap(TILE_WIDTH_PX, TILE_HEIGHT_PX);
+    for (var name in imageMap.keys) {
+      result.addAnimation(name, [imageMap[name]]);
+    }
+    return result;
+  }
+
+  SpriteMap getPieceSpriteMap(String pieceName) => pieceMaps[pieceName];
+
+  SpriteMap loadAnimationsFromFile(String filename, List<String> names) {
+    var menuImage = loader.loadImage(filename, TILE_WIDTH_PX, TILE_HEIGHT_PX * names.length);
+    var spriteMap = new SpriteMap(TILE_WIDTH_PX, TILE_HEIGHT_PX)
+        ..addAnimationsFromSpriteSheet(menuImage, names);
+    return spriteMap;
+  }
+
+  SpriteMap loadBattleMenu() {
+    return loadAnimationsFromFile('gfx/battle-menu.png', ['attack', 'item', 'magic', 'stay']);
+  }
+
+  SpriteMap singleImageGamePiece(String filename) {
+    Image image = loader.loadImage(filename);
+    var spriteMap = new SpriteMap(image.width, image.height);
+    for (var name in ['down', 'left', 'right', 'up']) {
+      spriteMap.addAnimation(name, [image]);
+    }
+    spriteMap.addAnimation('explosion', explosion);
+    return spriteMap;
+  }
+
+  SpriteMap spriteMapGamePiece(String filename) {
+    SpriteMap spriteMap =
+        loadAnimationsFromFile(filename, ['down', 'left', 'right', 'up']);
+    spriteMap.addAnimation('explosion', explosion);
+    return spriteMap;
+  }
+}
+
 void main() {
-  Stats s = new Stats();
-  document.body.children.add(s.container);
+  Stats fpsCounter = new Stats();
+  document.body.children.add(fpsCounter.container);
 
   CanvasElement canvas = querySelector("#canvas");
   CanvasRenderingContext2D context = canvas.getContext('2d');
@@ -92,89 +124,86 @@ void main() {
   context.translate(0.5, 0.5);
 
   Controller controller = new Controller();
-  var loader = new ImageLoader();
-  var fighterImages = loader.loadImageMapFromDir('fighter');
-  var enemyFighterImages = loader.loadImageMapFromDir('efighter');
-  var menuImages = loader.loadImages(['attack-icon', 'item-icon', 'magic-icon', 'stay-icon']);
-  var explosionImages = loader.loadImages(['explosion-1', 'explosion-2', 'explosion-3', 'explosion-4']);
-  var tileImages = loader.loadImages(['grass', 'dirt']);
-  var tileMap = new TileMap((320 / 16).floor(), (240 / 16).floor(), tileImages);
-  var spriteImages = loader.loadImages(['grid']);
+  var loader = new ImageLoader(TILE_WIDTH_PX, TILE_HEIGHT_PX);
+  Sprites sprites = new Sprites(loader);
+  var tileMap = new TileMap((320 / TILE_WIDTH_PX).floor(), (240 / TILE_HEIGHT_PX).floor(), sprites.tiles);
 
-  var visualRoot = new VisualElement();
-  var camera = new Camera(visualRoot);
-  new CameraDragger(canvas, camera);
-  visualRoot.add(tileMap);
-  KeyFocusStack<Controller> focusStack = new KeyFocusStack<Controller>();
-  var root = new Entity(focusStack, visualRoot);
-  var menuRunner = new PictureMenuRunner(root, menuImages);
+  loader.addListener(() {
+    var visualRoot = new VisualElement();
+    var camera = new Camera(visualRoot);
+    new CameraDragger(canvas, camera);
+    visualRoot.add(tileMap);
+    KeyFocusStack<Controller> focusStack = new KeyFocusStack<Controller>();
+    var root = new Entity(focusStack, visualRoot);
+    var menuRunner = new PictureMenuRunner(root, sprites.battleMenu);
 
-  fighterImages.addAll(explosionImages);
-  enemyFighterImages.addAll(explosionImages);
+    var board = new GameBoard();
 
-  var board = new GameBoard();
+    GamePiece fighter(name, x, y, good) {
+      var spriteMap = sprites.getPieceSpriteMap(name);
+      if (spriteMap == null) {
+        throw new Exception("spritemap for $name is null");
+      }
+      var p = new GamePiece(board, spriteMap, menuRunner, new Point(x, y), good ? 0 : 1);
+      board.addPiece(p);
+      return p;
+    }
+    GamePiece gfighter(name, x, y) => fighter(name, x, y, true);
+    GamePiece efighter(name, x, y) => fighter(name, x, y, false);
 
-  GamePiece fighter(x, y) {
-    var p = new GamePiece(board, fighterImages, menuRunner, new Point(x, y), 0);
-    board.addPiece(p);
-    return p;
-  }
-  GamePiece efighter(x, y) {
-    var p = new GamePiece(board, enemyFighterImages, menuRunner, new Point(x, y), 1);
-    board.addPiece(p);
-    return p;
-  }
+    var goodGuys = [gfighter('fighter', 1, 1), gfighter('hamster', 2, 1)];
+    var badGuys = [efighter('winged', 5, 5), efighter('bear', 8, 6), efighter('wizard', 7, 9)];
+    for (var g in goodGuys) {
+      root.add(g);
+    }
+    for (var b in badGuys) {
+      root.add(b);
+    }
 
-  var goodGuys = [fighter(0, 0), fighter(1, 0), fighter(0, 1)];
-  var badGuys = [efighter(5, 5), efighter(8, 6), efighter(7, 9)];
-  for (var g in goodGuys) {
-    root.add(g);
-  }
-  for (var b in badGuys) {
-    root.add(b);
-  }
+    Exit moveCursorBetween(Point<int> start, Point<int> end) {
+      return focusStack.blockInputUntil(new Cursor(root, start).moveToTargetAndDie(end));
+    }
 
-  Future moveCursorBetween(Point<int> start, Point<int> end) {
-    return new Cursor(root, start).moveToTargetAndDie(end);
-  }
-
-  var lastPosition = new Point(0, 0);
-  focusStack.enter((controller) {
-    var piece = board.currentPiece;
-    return focusStack.blockInputUntil(moveCursorBetween(lastPosition, piece.viewPos)).exit((_) {
-      return piece.makeMove().exit((_) {
-        if (board.isGameOver) {
-          return true;
-        }
-        board.nextTurn();
-        lastPosition = piece.viewPos;
+    var lastPosition = new Point(0, 0);
+    focusStack.enter((controller) {
+      var piece = board.currentPiece;
+      return moveCursorBetween(lastPosition, piece.viewPos).exit((_) {
+        return piece.makeMove().exit((_) {
+          if (board.isGameOver) {
+            return true;
+          }
+          board.nextTurn();
+          lastPosition = piece.viewPos;
+        });
       });
+    }).exit((r) {
+      print("The game is over");
     });
-  }).exit((r) {
-    print("The game is over");
+
+    double startTime = -1.0;
+    int tickCount = 0;
+    gameLoop(double timeFromStart) {
+      if (startTime == -1.0) {
+        startTime = timeFromStart;
+      }
+      double timeElapsed = timeFromStart - startTime;
+      fpsCounter.begin();
+      double tickDuration = 1000.0 / FPS;
+      while (timeElapsed - (tickCount * tickDuration) > tickDuration) {
+        focusStack.inputUpdated(controller);
+        controller.tick();
+        root.baseTick();
+        tickCount++;
+      }
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      visualRoot.draw(context);
+      fpsCounter.end();
+      window.animationFrame.then(gameLoop);
+    }
+    window.animationFrame.then(gameLoop);
+    document.body.onKeyDown.listen((e) => controller.onKeyDown(e.keyCode));
+    document.body.onKeyUp.listen((e) => controller.onKeyUp(e.keyCode));
   });
 
-  double startTime = -1.0;
-  int tickCount = 0;
-  gameLoop(double timeFromStart) {
-    if (startTime == -1.0) {
-      startTime = timeFromStart;
-    }
-    double timeElapsed = timeFromStart - startTime;
-    s.begin();
-    double tickDuration = 1000.0 / FPS;
-    while (timeElapsed - (tickCount * tickDuration) > tickDuration) {
-      focusStack.inputUpdated(controller);
-      controller.tick();
-      root.baseTick();
-      tickCount++;
-    }
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    visualRoot.draw(context);
-    s.end();
-    window.animationFrame.then(gameLoop);
-  }
-  loader.addListener(() => window.animationFrame.then(gameLoop));
-  document.body.onKeyDown.listen((e) => controller.onKeyDown(e.keyCode));
-  document.body.onKeyUp.listen((e) => controller.onKeyUp(e.keyCode));
+
 }

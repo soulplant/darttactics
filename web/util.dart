@@ -1,6 +1,12 @@
 library tactics_util;
 
+
+import 'dart:html';
 import 'dart:math';
+
+part './image.dart';
+part './image_loader.dart';
+part './constants.dart';
 
 const int FPS = 60;
 

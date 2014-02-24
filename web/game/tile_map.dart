@@ -5,7 +5,7 @@ class TileMap extends VisualElement {
   static const DIRT = 'dirt';
   int _tilesWide;
   int _tilesHigh;
-  Map _imageMap;
+  SpriteMap _imageMap;
   Function _tiles = (x, y) => x < 5 ? GRASS : DIRT;
 
   TileMap(this._tilesWide, this._tilesHigh, this._imageMap);
@@ -13,7 +13,7 @@ class TileMap extends VisualElement {
   void doDraw(CanvasRenderingContext2D context) {
     for (var i = 0; i < _tilesWide; i++) {
       for (var j = 0; j < _tilesHigh; j++) {
-        context.drawImage(_imageMap[_tiles(i, j)], i * 16, j * 16);
+        _imageMap.getAnimation(_tiles(i, j))[0].draw(context, i * TILE_WIDTH_PX, j * TILE_HEIGHT_PX);
       }
     }
   }

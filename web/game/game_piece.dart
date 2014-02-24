@@ -13,8 +13,8 @@ class GamePiece extends Entity {
   int _team;
   int _range = 1;
 
-  GamePiece(this._board, Map<String, ImageElement> images, this._menuRunner, this._pos, this._team) {
-    _view = new SpriteElement(images, 'down');
+  GamePiece(this._board, SpriteMap spriteMap, this._menuRunner, this._pos, this._team) {
+    _view = new SpriteElement(spriteMap, 'down');
     _view.pos = scalePoint(_pos, TILE_WIDTH_PX);
   }
   SpriteElement get view => _view; // TODO remove?
@@ -70,7 +70,7 @@ class GamePiece extends Entity {
     return enter(new ChooseAttackTarget(this, _board).run).exit((target) {
       if (target is GamePiece) {
         return enter(new DeathSpinAnimation(target.view, 480).run).exit((_) {
-          return enter(new LinearAnimation(target.view, 'explosion', 640, 4).run).exit((_) {
+          return enter(new LinearAnimation(target.view, 'explosion', 640).run).exit((_) {
             target.die();
             _view.setFacing(new Point<int>(0, 1));
             return true;
@@ -108,6 +108,10 @@ class ChooseAttackTarget extends Entity {
     return blockInputUntil(_cursor.moveToTarget(target.viewPos));
   }
 
+  Exit moveCursorBackToPlayer() {
+    return blockInputUntil(_cursor.moveToTarget(_piece.viewPos));
+  }
+
   GamePiece get target => _targets.first;
 
   dynamic inputLoop(Controller controller) {
@@ -131,8 +135,10 @@ class ChooseAttackTarget extends Entity {
       return target;
     }
     if (controller.cancel) {
-      die();
-      return true;
+      return moveCursorBackToPlayer().exit((_) {
+        die();
+        return true;
+      });
     }
     return inputLoop;
   }
@@ -177,9 +183,10 @@ class LinearAnimation {
   int _frameCount;
   String _animationName;
 
-  LinearAnimation(this._sprite, this._animationName, int durationMs, this._frameCount) {
+  LinearAnimation(this._sprite, this._animationName, int durationMs) {
     _duration = msToTicks(durationMs);
-    _ticksPerFrame = _duration / _frameCount;
+    _sprite.animation = _animationName;
+    _ticksPerFrame = _duration / _sprite.frameCount;
   }
 
   dynamic run(Controller controller) {
@@ -187,7 +194,8 @@ class LinearAnimation {
     if (_elapsed >= _duration) {
       return true;
     }
-    int frame = min(_frameCount, 1 + (_elapsed / _ticksPerFrame).floor());
-    _sprite.frame = '$_animationName-$frame';
+    int frame = min(_sprite.frameCount, (_elapsed / _ticksPerFrame).floor());
+    _sprite.animation = _animationName;
+    _sprite.frame = frame;
   }
 }

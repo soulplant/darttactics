@@ -1,11 +1,11 @@
 part of tactics;
 
 class MenuElement extends VisualElement {
-  Map<String, ImageElement> _images;
+  SpriteMap _spriteMap;
   List<String> _options;
   Map<String, SpriteElement> _items = {};
 
-  MenuElement(this._images, this._options) {
+  MenuElement(this._spriteMap, this._options) {
     x = 0;
     y = 0;
     width = 3 * TILE_WIDTH_PX;
@@ -14,8 +14,7 @@ class MenuElement extends VisualElement {
     var offsets = [[-1, 0], [1, 0], [0, -1], [0, 1]];
     for (var i = 0; i < _options.length; i++) {
       var optionName = _options[i];
-      var imageName = '$optionName-icon';
-      var menuItem = new SpriteElement(_images, imageName);
+      var menuItem = new SpriteElement(_spriteMap, optionName);
       menuItem.pos = new Point<int>((offsets[i][0] + 1) * TILE_WIDTH_PX,
           (offsets[i][1] + 1) * TILE_HEIGHT_PX);
       add(menuItem);
@@ -32,12 +31,12 @@ class MenuElement extends VisualElement {
 
 class PictureMenuRunner {
   Entity _entity;
-  Map<String, ImageElement> _images;
-  PictureMenuRunner(this._entity, this._images);
+  SpriteMap _spriteMap;
+  PictureMenuRunner(this._entity, this._spriteMap);
 
   Exit<String> runMenu(String startingOption) {
     var optionNames = ['attack', 'item', 'magic', 'stay'];
-    var view = new MenuElement(_images, optionNames);
+    var view = new MenuElement(_spriteMap, optionNames);
     var menu = new PictureMenu(view, optionNames, startingOption);
     _entity.add(menu);
     return menu.selectItem().exit((item) {
