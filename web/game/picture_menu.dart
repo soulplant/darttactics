@@ -11,12 +11,12 @@ class MenuElement extends VisualElement {
     width = 3 * TILE_WIDTH_PX;
     height = 3 * TILE_HEIGHT_PX;
 
-    var offsets = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+    var offsets = [[-1.0, 0.0], [1.0, 0.0], [0.0, -0.5], [0.0, 0.5]];
     for (var i = 0; i < _options.length; i++) {
       var optionName = _options[i];
       var menuItem = new SpriteElement(_spriteMap, optionName);
-      menuItem.pos = new Point<int>((offsets[i][0] + 1) * TILE_WIDTH_PX,
-          (offsets[i][1] + 1) * TILE_HEIGHT_PX);
+      menuItem.pos = new Point<int>(((offsets[i][0] + 1) * TILE_WIDTH_PX).floor(),
+          ((offsets[i][1] + 1) * TILE_HEIGHT_PX).floor());
       add(menuItem);
       _items[optionName] = menuItem;
     }
@@ -24,7 +24,7 @@ class MenuElement extends VisualElement {
 
   void select(String name) {
     for (var n in _items.keys) {
-      _items[n].border = n == name;
+      _items[n].frame = (n == name) ? 1 : 0;
     }
   }
 }
@@ -70,11 +70,11 @@ class PictureMenu extends Entity implements Positioned {
 
   Point<int> get targetPosition =>
       new Point<int>(((SCREEN_WIDTH_PX - _view.width) / 2).floor(),
-          (SCREEN_HEIGHT_PX - _view.height - 16).floor());
+          (SCREEN_HEIGHT_PX - _view.height).floor());
 
   Point<int> get startPosition {
     var p = targetPosition;
-    return new Point<int>(p.x, p.y + _view.height);
+    return new Point<int>(p.x, p.y + 80);
   }
 
   Exit<String> selectItem() {
