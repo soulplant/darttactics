@@ -92,8 +92,17 @@ class Sprites {
     return spriteMap;
   }
 
+  List<Image> _menuAnimation(String name) {
+    return loader.loadImageList(['${name}_off', '${name}_on']);
+  }
+
   SpriteMap loadBattleMenu() {
-    return loadAnimationsFromFile('gfx/battle-menu.png', ['attack', 'item', 'magic', 'stay']);
+    var names = ['attack', 'item', 'magic', 'stay'];
+    SpriteMap result = new SpriteMap(TILE_WIDTH_PX, TILE_HEIGHT_PX);
+    for (var name in names) {
+      result.addAnimation(name, _menuAnimation(name));
+    }
+    return result;
   }
 
   SpriteMap singleImageGamePiece(String filename) {
