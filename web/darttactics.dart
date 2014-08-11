@@ -1,6 +1,5 @@
 library darttactics;
 
-import 'dart:async';
 import 'dart:html';
 import 'package:stats/stats.dart';
 import 'tactics.dart';
