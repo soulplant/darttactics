@@ -212,6 +212,4 @@ void main() {
     document.body.onKeyDown.listen((e) => controller.onKeyDown(e.keyCode));
     document.body.onKeyUp.listen((e) => controller.onKeyUp(e.keyCode));
   });
-
-
 }

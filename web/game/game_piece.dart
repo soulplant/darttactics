@@ -20,6 +20,7 @@ class GamePiece extends Entity {
   SpriteElement get view => _view; // TODO remove?
   int get team => _team;
   int get range => _range;
+  int get otherTeam => 1 - _team;  // TODO Don't rely on this relationship.
 
   void onInit() {
     addVisual(_view);
@@ -42,7 +43,8 @@ class GamePiece extends Entity {
     }
 
     if (controller.action) {
-      return _menuRunner.runMenu('stay').exit((item) {
+      var defaultAction = _board.getNearbyPieces(_pos, otherTeam, range).isEmpty ? 'stay' : 'attack';
+      return _menuRunner.runMenu(defaultAction).exit((item) {
         print('got $item from the menu');
         switch (item) {
           case PictureMenu.CANCELED:
