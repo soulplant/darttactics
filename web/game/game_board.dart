@@ -17,7 +17,6 @@ class GameBoard {
     _pieces.add(piece);
     _turnOrder.putIfAbsent(piece.team, () => []).add(piece);
     piece.onDead.then((_) {
-      print("Got notification that piece died...");
       onPieceDied(piece);
     });
   }

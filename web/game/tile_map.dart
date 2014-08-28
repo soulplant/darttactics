@@ -1,8 +1,20 @@
 part of tactics;
 
+class Tile {
+  String _name;
+  int _movementCost;
+
+  Tile(this._name, this._movementCost);
+}
+
 class TileMap extends VisualElement {
   static const GRASS = 'grass';
   static const DIRT = 'dirt';
+
+  var TILES = {
+    GRASS: new Tile(GRASS, 1),
+    DIRT: new Tile(DIRT, 2),
+  };
   int _tilesWide;
   int _tilesHigh;
   SpriteMap _imageMap;

@@ -1,5 +1,8 @@
 part of tactics;
 
+/**
+ * A collection of named animations. An animation is a list of Images.
+ */
 class SpriteMap {
   Map<String, List<Image>> _animations = {};
   int _widthPx;

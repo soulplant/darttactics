@@ -2,6 +2,7 @@ part of tactics_util;
 
 class ImageLoader {
   int _outstandingLoads = 0;
+  // TODO: Convert to future.
   List<Function> _listeners = [];
   int _widthPx;
   int _heightPx;

@@ -1,5 +1,7 @@
 part of tactics;
 
+
+
 /**
  * Represents a 'piece' in the game, ie: something that can move and attack in
  * the tactical game.
@@ -10,6 +12,8 @@ class GamePiece extends Entity {
   Map<String, ImageElement> _menuImages;
   GameBoard _board;
   PictureMenuRunner _menuRunner;
+
+  // Valid teams are 0 and 1.
   int _team;
   int _range = 1;
 
@@ -20,7 +24,7 @@ class GamePiece extends Entity {
   SpriteElement get view => _view; // TODO remove?
   int get team => _team;
   int get range => _range;
-  int get otherTeam => 1 - _team;  // TODO Don't rely on this relationship.
+  int get otherTeam => 1 - _team;
 
   void onInit() {
     addVisual(_view);
@@ -68,17 +72,21 @@ class GamePiece extends Entity {
     return enter(makeMoveInputLoop);
   }
 
+  Exit kill() {
+    return enter(new DeathSpinAnimation(view, 480).run).exit((_) {
+      return enter(new LinearAnimation(view, 'explosion', 640).run).exit((_) {
+        die();
+        return true;
+      });
+    });
+  }
+
   Exit runAttack() {
-    return enter(new ChooseAttackTarget(this, _board).run).exit((target) {
-      if (target is GamePiece) {
-        return enter(new DeathSpinAnimation(target.view, 480).run).exit((_) {
-          return enter(new LinearAnimation(target.view, 'explosion', 640).run).exit((_) {
-            target.die();
-            _view.setFacing(new Point<int>(0, 1));
-            return true;
-          });
-        });
-      }
+    return enter(new ChooseAttackTarget(this, _board).run).exit((GamePiece target) {
+      return target.kill().exit((_) {
+        view.setFacing(new Point<int>(0, 1));
+        return true;
+      });
     });
   }
 }
@@ -156,7 +164,7 @@ class DeathSpinAnimation {
   int _elapsed = 0;
   int _rotations = 4;
   double _ticksPerDirectionChange;
-  var directions = [new Point(-1, 0), new Point(0, -1), new Point(1,0), new Point(0, 1)];
+  var directions = [new Point(-1, 0), new Point(0, -1), new Point(1, 0), new Point(0, 1)];
 
   DeathSpinAnimation(this._sprite, int durationMs) {
     _duration = msToTicks(durationMs);
