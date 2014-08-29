@@ -140,12 +140,12 @@ void main() {
     var visualRoot = new VisualElement();
     var camera = new Camera(visualRoot);
     new CameraDragger(canvas, camera);
-    visualRoot.add(tileMap);
     KeyFocusStack<Controller> focusStack = new KeyFocusStack<Controller>();
     var root = new Entity(focusStack, visualRoot);
     var menuRunner = new PictureMenuRunner(root, sprites.battleMenu);
 
-    var board = new GameBoard();
+    var board = new GameBoard(tileMap);
+    visualRoot.add(board);
 
     GamePiece fighter(name, x, y, good) {
       var spriteMap = sprites.getPieceSpriteMap(name);
@@ -175,6 +175,7 @@ void main() {
     var lastPosition = new Point(0, 0);
     focusStack.enter((controller) {
       var piece = board.currentPiece;
+      board.clearHighlighted();
       return moveCursorBetween(lastPosition, piece.viewPos).exit((_) {
         return piece.makeMove().exit((_) {
           if (board.isGameOver) {

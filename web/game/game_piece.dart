@@ -69,6 +69,7 @@ class GamePiece extends Entity {
   }
 
   Exit makeMove() {
+    _board.setHighlighted(pos);
     return enter(makeMoveInputLoop);
   }
 
@@ -83,6 +84,7 @@ class GamePiece extends Entity {
 
   Exit runAttack() {
     return enter(new ChooseAttackTarget(this, _board).run).exit((GamePiece target) {
+      _board.clearHighlighted();
       return target.kill().exit((_) {
         view.setFacing(new Point<int>(0, 1));
         return true;
