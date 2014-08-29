@@ -38,7 +38,7 @@ class GamePiece extends Entity {
   Point<int> get viewPos => _view.pos;
   Point<int> get pos => _pos;
 
-  dynamic makeMoveInputLoop(Controller controller) {
+  makeMoveInputLoop(Controller controller) {
     Point<int> delta = controller.direction;
     if (delta != null) {
       _pos += delta;
@@ -49,7 +49,6 @@ class GamePiece extends Entity {
     if (controller.action) {
       var defaultAction = _board.getNearbyPieces(_pos, otherTeam, range).isEmpty ? 'stay' : 'attack';
       return _menuRunner.runMenu(defaultAction).exit((item) {
-        print('got $item from the menu');
         switch (item) {
           case PictureMenu.CANCELED:
             return null;
@@ -175,7 +174,7 @@ class DeathSpinAnimation {
     _ticksPerDirectionChange = _duration / (_rotations * 4);
   }
 
-  dynamic run(Controller controller) {
+  run(Controller controller) {
     _elapsed++;
     if (_elapsed == _duration) {
       return true;
@@ -203,7 +202,7 @@ class LinearAnimation {
     _ticksPerFrame = _duration / _sprite.frameCount;
   }
 
-  dynamic run(Controller controller) {
+  run(Controller controller) {
     _elapsed++;
     if (_elapsed >= _duration) {
       return true;
