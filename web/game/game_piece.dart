@@ -69,7 +69,9 @@ class GamePiece extends Entity {
   }
 
   Exit makeMove() {
-    _board.setHighlighted(pos);
+    for (var p in _board.getPointsInRange(pos, 3)) {
+      _board.setHighlighted(p);
+    }
     return enter(makeMoveInputLoop);
   }
 

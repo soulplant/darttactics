@@ -50,6 +50,19 @@ class GameBoard extends VisualElement {
     return _pieces.where((p) => p.team == team && distance(p.pos, point) <= range).toList();
   }
 
+  List<Point<int>> getPointsInRange(Point<int> point, int range) {
+    var result = [];
+    for (var i = 0; i < _tiles.tilesWide; i++) {
+      for (var j = 0; j < _tiles.tilesHigh; j++) {
+        var p = new Point<int>(i, j);
+        if (distance(p, point) <= range) {
+          result.add(p);
+        }
+      }
+    }
+    return result;
+  }
+
   void setHighlighted(Point<int> p) {
     var highlight = new HighlightSquare(p);
     _highlights.add(highlight);

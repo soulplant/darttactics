@@ -20,6 +20,8 @@ class TileMap extends VisualElement {
   int _tilesHigh;
   SpriteMap _imageMap;
   Function _tiles = (p) => TILES[p.x < 5 ? GRASS : DIRT];
+  int get tilesWide => _tilesWide;
+  int get tilesHigh => _tilesHigh;
 
   TileMap(this._tilesWide, this._tilesHigh, this._imageMap);
 
