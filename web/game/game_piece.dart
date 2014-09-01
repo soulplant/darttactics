@@ -22,6 +22,7 @@ class GamePiece extends Entity {
     _view = new SpriteElement(spriteMap, 'down');
     _view.pos = scalePoint(_pos, TILE_WIDTH_PX);
   }
+
   SpriteElement get view => _view; // TODO remove?
   int get team => _team;
   int get range => _range;
@@ -163,6 +164,7 @@ class ChooseAttackTarget extends Entity {
     return inputLoop;
   }
 
+  @override
   void onDie() {
     _cursor.die();
   }

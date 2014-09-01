@@ -5,6 +5,7 @@ import 'dart:html';
 import 'dart:math';
 
 import 'util.dart';
+import 'util/grid.dart';
 
 // TODO: Sort.
 part 'engine/key_focus_stack.dart';
