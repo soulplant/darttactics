@@ -12,6 +12,7 @@ class GamePiece extends Entity {
   Map<String, ImageElement> _menuImages;
   GameBoard _board;
   PictureMenuRunner _menuRunner;
+  List<Point> _moveableArea;
 
   // Valid teams are 0 and 1.
   int _team;
@@ -41,9 +42,12 @@ class GamePiece extends Entity {
   makeMoveInputLoop(Controller controller) {
     Point<int> delta = controller.direction;
     if (delta != null) {
-      _pos += delta;
-      _view.setFacing(delta);
-      return slideTo(_view, _view.pos, scalePoint(_pos, TILE_WIDTH_PX), 270);
+      var targetPos = _pos + delta;
+      if (_moveableArea.contains(targetPos)) {
+        _pos = targetPos;
+        _view.setFacing(delta);
+        return slideTo(_view, _view.pos, scalePoint(_pos, TILE_WIDTH_PX), 270);
+      }
     }
 
     if (controller.action) {
@@ -68,10 +72,13 @@ class GamePiece extends Entity {
   }
 
   Exit makeMove() {
-    for (var p in _board.getPointsInRange(pos, 3)) {
+    _moveableArea = _board.getPointsInRange(pos, 3);
+    for (var p in _moveableArea) {
       _board.setHighlighted(p);
     }
-    return enter(makeMoveInputLoop);
+    return enter(makeMoveInputLoop).exit((_) {
+      _moveableArea = null;
+    });
   }
 
   Exit kill() {
