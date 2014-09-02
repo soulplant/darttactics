@@ -35,4 +35,8 @@ class TileMap extends VisualElement {
       }
     }
   }
+
+  bool contains(Point<int> p) {
+    return p.x >= 0 && p.x < tilesWide && p.y >= 0 && p.y < tilesHigh;
+  }
 }
