@@ -50,14 +50,6 @@ class GameBoard extends VisualElement {
     return _pieces.where((p) => p.team == team && distance(p.pos, point) <= range).toList();
   }
 
-  List<Point<int>> getNeighbors(Point<int> p) {
-    var up = new Point(0, -1);
-    var down = new Point(0, 1);
-    var left = new Point(-1, 0);
-    var right = new Point(1, 0);
-    return [up, down, left, right].map((d) => d + p).where((p) => _tiles.contains(p)).toList();
-  }
-
   List<Point<int>> getPointsInRange(Point<int> point, int range) {
     var costs = new Grid(_tiles.tilesWide, _tiles.tilesHigh, (x, y) => -1);
     var visited = new Grid(_tiles.tilesWide, _tiles.tilesHigh, (x, y) => false);
@@ -66,11 +58,10 @@ class GameBoard extends VisualElement {
     costs.set(point.x, point.y, 0);
 
     while (!q.isEmpty) {
-      var p = removeNearestPoint(costs, q);
-      visited.set(p.x, p.y, true);
+      var p = _removeNearestPoint(costs, q);
       var costToHere = costs.get(p.x, p.y);
       assert(costToHere >= 0);
-      for (var n in getNeighbors(p)) {
+      for (var n in _getNeighbors(p)) {
         var cost = _tiles.getTile(n).movementCost;
         var currentCost = costs.get(n.x, n.y);
         if (currentCost == -1 || currentCost > costToHere + cost) {
@@ -80,6 +71,7 @@ class GameBoard extends VisualElement {
           q.add(n);
         }
       }
+      visited.set(p.x, p.y, true);
     }
 
     var result = [];
@@ -93,7 +85,15 @@ class GameBoard extends VisualElement {
     return result;
   }
 
-  Point<int> removeNearestPoint(Grid<int> costs, List<Point<int>> q) {
+  List<Point<int>> _getNeighbors(Point<int> p) {
+    var up = new Point(0, -1);
+    var down = new Point(0, 1);
+    var left = new Point(-1, 0);
+    var right = new Point(1, 0);
+    return [up, down, left, right].map((d) => d + p).where((p) => _tiles.contains(p)).toList();
+  }
+
+  Point<int> _removeNearestPoint(Grid<int> costs, List<Point<int>> q) {
     int smallest = costs.get(q.first.x, q.first.y);
     int smallestI = 0;
     for (var i = 0; i < q.length; i++) {
